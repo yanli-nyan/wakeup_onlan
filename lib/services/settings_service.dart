@@ -6,13 +6,9 @@ class SettingsService extends ChangeNotifier {
   static const String _defaultIp = '192.168.1.100';
   static const String _macAddressKey = 'mac_address';
   static const String _defaultMac = '00:00:00:00:00:00';
-  static const String _tailscaleIpKey = 'tailscale_ip';
-  static const String _defaultTailscaleIp = '100.117.222.75';
 
-  static const String _haLocalUrlKey = 'ha_local_url';
-  static const String _defaultHaLocalUrl = 'http://192.168.1.4:8123';
-  static const String _haTailscaleUrlKey = 'ha_tailscale_url';
-  static const String _defaultHaTailscaleUrl = 'http://100.117.222.75:8123';
+  static const String _haPortKey = 'ha_port';
+  static const int _defaultHaPort = 8123;
   static const String _haTokenKey = 'ha_token';
   static const String _defaultHaToken =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI1ZjkwNWE5ZWY5MWE0NWIwYjc2ZjdmZmJiMDM1NDg3OSIsImlhdCI6MTc4NDY5OTM4MCwiZXhwIjoyMTAwMDU5MzgwfQ.lanOu2nVdWGaAMopyp7hMQR-7Ln8csvcZJNbU-8hguw';
@@ -20,6 +16,8 @@ class SettingsService extends ChangeNotifier {
   static const String _defaultHaSensorEntity = 'binary_sensor.192_168_1_100';
   static const String _haSwitchEntityKey = 'ha_switch_entity';
   static const String _defaultHaSwitchEntity = 'switch.desktop_pc';
+  static const String _haSocketEntityKey = 'ha_socket_entity';
+  static const String _defaultHaSocketEntity = 'switch.yutai_socn1_0c36_switch';
 
   static const String _tvLocalIpKey = 'tv_local_ip';
   static const String _defaultTvLocalIp = '192.168.1.4';
@@ -52,12 +50,11 @@ class SettingsService extends ChangeNotifier {
 
   String _ipAddress = _defaultIp;
   String _macAddress = _defaultMac;
-  String _tailscaleIp = _defaultTailscaleIp;
-  String _haLocalUrl = _defaultHaLocalUrl;
-  String _haTailscaleUrl = _defaultHaTailscaleUrl;
+  int _haPort = _defaultHaPort;
   String _haToken = _defaultHaToken;
   String _haSensorEntity = _defaultHaSensorEntity;
   String _haSwitchEntity = _defaultHaSwitchEntity;
+  String _haSocketEntity = _defaultHaSocketEntity;
 
   String _tvLocalIp = _defaultTvLocalIp;
   String _tvTailscaleIp = _defaultTvTailscaleIp;
@@ -76,12 +73,14 @@ class SettingsService extends ChangeNotifier {
 
   String get ipAddress => _ipAddress;
   String get macAddress => _macAddress;
-  String get tailscaleIp => _tailscaleIp;
-  String get haLocalUrl => _haLocalUrl;
-  String get haTailscaleUrl => _haTailscaleUrl;
+
+  int get haPort => _haPort;
+  String get haLocalUrl => 'http://$_tvLocalIp:$_haPort';
+  String get haTailscaleUrl => 'http://$_tvTailscaleIp:$_haPort';
   String get haToken => _haToken;
   String get haSensorEntity => _haSensorEntity;
   String get haSwitchEntity => _haSwitchEntity;
+  String get haSocketEntity => _haSocketEntity;
 
   String get tvLocalIp => _tvLocalIp;
   String get tvTailscaleIp => _tvTailscaleIp;
@@ -100,15 +99,18 @@ class SettingsService extends ChangeNotifier {
     _prefs = await SharedPreferences.getInstance();
     _ipAddress = _prefs?.getString(_ipAddressKey) ?? _defaultIp;
     _macAddress = _prefs?.getString(_macAddressKey) ?? _defaultMac;
-    _tailscaleIp = _prefs?.getString(_tailscaleIpKey) ?? _defaultTailscaleIp;
-    _haLocalUrl = _prefs?.getString(_haLocalUrlKey) ?? _defaultHaLocalUrl;
-    _haTailscaleUrl = _prefs?.getString(_haTailscaleUrlKey) ?? _defaultHaTailscaleUrl;
+    _haPort = _prefs?.getInt(_haPortKey) ?? _defaultHaPort;
     _haToken = _prefs?.getString(_haTokenKey) ?? _defaultHaToken;
-    _haSensorEntity = _prefs?.getString(_haSensorEntityKey) ?? _defaultHaSensorEntity;
-    _haSwitchEntity = _prefs?.getString(_haSwitchEntityKey) ?? _defaultHaSwitchEntity;
+    _haSensorEntity =
+        _prefs?.getString(_haSensorEntityKey) ?? _defaultHaSensorEntity;
+    _haSwitchEntity =
+        _prefs?.getString(_haSwitchEntityKey) ?? _defaultHaSwitchEntity;
+    _haSocketEntity =
+        _prefs?.getString(_haSocketEntityKey) ?? _defaultHaSocketEntity;
 
     _tvLocalIp = _prefs?.getString(_tvLocalIpKey) ?? _defaultTvLocalIp;
-    _tvTailscaleIp = _prefs?.getString(_tvTailscaleIpKey) ?? _defaultTvTailscaleIp;
+    _tvTailscaleIp =
+        _prefs?.getString(_tvTailscaleIpKey) ?? _defaultTvTailscaleIp;
     _tvUser = _prefs?.getString(_tvUserKey) ?? _defaultTvUser;
     _tvPass = _prefs?.getString(_tvPassKey) ?? _defaultTvPass;
     _piIp = _prefs?.getString(_piIpKey) ?? _defaultPiIp;
@@ -117,8 +119,10 @@ class SettingsService extends ChangeNotifier {
     _zeroIp = _prefs?.getString(_zeroIpKey) ?? _defaultZeroIp;
     _zeroUser = _prefs?.getString(_zeroUserKey) ?? _defaultZeroUser;
     _zeroPass = _prefs?.getString(_zeroPassKey) ?? _defaultZeroPass;
-    _useExternalSshApp = _prefs?.getBool(_useExternalSshAppKey) ?? _defaultUseExternalSshApp;
-    _terminalFontSize = _prefs?.getDouble(_terminalFontSizeKey) ?? _defaultTerminalFontSize;
+    _useExternalSshApp =
+        _prefs?.getBool(_useExternalSshAppKey) ?? _defaultUseExternalSshApp;
+    _terminalFontSize =
+        _prefs?.getDouble(_terminalFontSizeKey) ?? _defaultTerminalFontSize;
 
     notifyListeners();
   }
@@ -135,22 +139,10 @@ class SettingsService extends ChangeNotifier {
     await _prefs?.setString(_macAddressKey, mac);
   }
 
-  Future<void> setTailscaleIp(String ip) async {
-    _tailscaleIp = ip;
+  Future<void> setHaPort(int port) async {
+    _haPort = port;
     notifyListeners();
-    await _prefs?.setString(_tailscaleIpKey, ip);
-  }
-
-  Future<void> setHaLocalUrl(String url) async {
-    _haLocalUrl = url;
-    notifyListeners();
-    await _prefs?.setString(_haLocalUrlKey, url);
-  }
-
-  Future<void> setHaTailscaleUrl(String url) async {
-    _haTailscaleUrl = url;
-    notifyListeners();
-    await _prefs?.setString(_haTailscaleUrlKey, url);
+    await _prefs?.setInt(_haPortKey, port);
   }
 
   Future<void> setHaToken(String token) async {
@@ -169,6 +161,12 @@ class SettingsService extends ChangeNotifier {
     _haSwitchEntity = entity;
     notifyListeners();
     await _prefs?.setString(_haSwitchEntityKey, entity);
+  }
+
+  Future<void> setHaSocketEntity(String entity) async {
+    _haSocketEntity = entity;
+    notifyListeners();
+    await _prefs?.setString(_haSocketEntityKey, entity);
   }
 
   Future<void> setTvLocalIp(String ip) async {

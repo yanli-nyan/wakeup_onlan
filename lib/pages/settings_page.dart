@@ -13,9 +13,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late TextEditingController _ipController;
   late TextEditingController _macController;
-  late TextEditingController _tailscaleIpController;
-  late TextEditingController _haLocalUrlController;
-  late TextEditingController _haTailscaleUrlController;
+  late TextEditingController _haPortController;
   late TextEditingController _haTokenController;
   late TextEditingController _haSensorController;
   late TextEditingController _haSwitchController;
@@ -42,14 +40,8 @@ class _SettingsPageState extends State<SettingsPage> {
     _macController = TextEditingController(
       text: widget.settingsService.macAddress,
     );
-    _tailscaleIpController = TextEditingController(
-      text: widget.settingsService.tailscaleIp,
-    );
-    _haLocalUrlController = TextEditingController(
-      text: widget.settingsService.haLocalUrl,
-    );
-    _haTailscaleUrlController = TextEditingController(
-      text: widget.settingsService.haTailscaleUrl,
+    _haPortController = TextEditingController(
+      text: widget.settingsService.haPort.toString(),
     );
     _haTokenController = TextEditingController(
       text: widget.settingsService.haToken,
@@ -95,9 +87,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void dispose() {
     _ipController.dispose();
     _macController.dispose();
-    _tailscaleIpController.dispose();
-    _haLocalUrlController.dispose();
-    _haTailscaleUrlController.dispose();
+    _haPortController.dispose();
     _haTokenController.dispose();
     _haSensorController.dispose();
     _haSwitchController.dispose();
@@ -135,33 +125,17 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  void _saveTailscaleIp() {
-    final ip = _tailscaleIpController.text.trim();
-    if (ip.isNotEmpty) {
-      widget.settingsService.setTailscaleIp(ip);
+  void _saveHaPort() {
+    final port = int.tryParse(_haPortController.text.trim());
+    if (port != null && port > 0 && port < 65536) {
+      widget.settingsService.setHaPort(port);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Tailscale IP已保存')));
-    }
-  }
-
-  void _saveHaLocalUrl() {
-    final url = _haLocalUrlController.text.trim();
-    if (url.isNotEmpty) {
-      widget.settingsService.setHaLocalUrl(url);
+      ).showSnackBar(const SnackBar(content: Text('HA端口已保存')));
+    } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('局域网HA地址已保存')));
-    }
-  }
-
-  void _saveHaTailscaleUrl() {
-    final url = _haTailscaleUrlController.text.trim();
-    if (url.isNotEmpty) {
-      widget.settingsService.setHaTailscaleUrl(url);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Tailscale HA地址已保存')));
+      ).showSnackBar(const SnackBar(content: Text('请输入有效的端口号(1-65535)')));
     }
   }
 
@@ -514,24 +488,6 @@ class _SettingsPageState extends State<SettingsPage> {
               onSubmitted: (_) => _saveMac(),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: TextField(
-              controller: _tailscaleIpController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: '设备Tailscale IP',
-                hintText: '例如: 100.117.222.75',
-                prefixIcon: const Icon(Icons.vpn_lock),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.save),
-                  onPressed: _saveTailscaleIp,
-                ),
-                border: const OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => _saveTailscaleIp(),
-            ),
-          ),
           const Divider(),
           ExpansionTile(
             title: const Text('Home Assistant'),
@@ -544,25 +500,10 @@ class _SettingsPageState extends State<SettingsPage> {
               });
             },
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: TextField(
-                  controller: _haLocalUrlController,
-                  decoration: InputDecoration(
-                    labelText: '局域网HA地址',
-                    hintText: '例如: http://192.168.1.4:8123',
-                    prefixIcon: const Icon(Icons.link),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.save),
-                      onPressed: _saveHaLocalUrl,
-                    ),
-                    border: const OutlineInputBorder(),
-                  ),
-                  onSubmitted: (_) => _saveHaLocalUrl(),
-                ),
+              const ListTile(
+                leading: Icon(Icons.info_outline, color: Colors.blue),
+                title: Text('HA 地址自动生成'),
+                subtitle: Text('局域网地址和 Tailscale 地址由「SSH 设备 - TV」的 IP 自动拼接'),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -570,18 +511,19 @@ class _SettingsPageState extends State<SettingsPage> {
                   vertical: 8,
                 ),
                 child: TextField(
-                  controller: _haTailscaleUrlController,
+                  controller: _haPortController,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Tailscale HA地址',
-                    hintText: '例如: http://100.117.222.75:8123',
-                    prefixIcon: const Icon(Icons.vpn_lock),
+                    labelText: 'HA 端口',
+                    hintText: '例如: 8123',
+                    prefixIcon: const Icon(Icons.settings_ethernet),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.save),
-                      onPressed: _saveHaTailscaleUrl,
+                      onPressed: _saveHaPort,
                     ),
                     border: const OutlineInputBorder(),
                   ),
-                  onSubmitted: (_) => _saveHaTailscaleUrl(),
+                  onSubmitted: (_) => _saveHaPort(),
                 ),
               ),
               Padding(

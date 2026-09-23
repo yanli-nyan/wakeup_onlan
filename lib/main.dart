@@ -153,22 +153,46 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _status = PcStatus.waking;
       });
+      bool wakeOk = false;
+      bool socketOk = false;
+      try {
+        _haService = HomeAssistantService(
+          baseUrl: _getHaBaseUrl(),
+          token: _settingsService.haToken,
+        );
+        // 1. 先打开裕泰供电插座
+        socketOk =
+            await _haService?.turnOnSwitch(_settingsService.haSocketEntity) ??
+            false;
+        // 延时500ms，等插座上电稳定
+        await Future.delayed(const Duration(milliseconds: 500));
+        // 2. 再触发WOL虚拟开关，HA自动化发送WOL魔术包
+        wakeOk =
+            await _haService?.turnOnSwitch(_settingsService.haSwitchEntity) ??
+            false;
 
-      _haService = HomeAssistantService(
-        baseUrl: _getHaBaseUrl(),
-        token: _settingsService.haToken,
-      );
-
-      final wakeSent =
-          await _haService?.turnOnSwitch(_settingsService.haSwitchEntity) ??
-          false;
-
-      if (wakeSent && mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('已发送唤醒指令')));
+        if (mounted) {
+          if (socketOk && wakeOk) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('已打开插座 + 发送WOL唤醒指令')));
+          } else if (socketOk) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('插座已上电，WOL指令发送失败')));
+          } else {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('插座打开失败')));
+          }
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('唤醒流程异常')));
+        }
       }
-
       await Future.delayed(const Duration(seconds: 10));
       _checkPcStatus();
     } else {
