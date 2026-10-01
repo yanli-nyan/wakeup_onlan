@@ -1,5 +1,5 @@
 name: wakeup_onlan
-description: "A new Flutter project."
+description: "A simple Flutter app for waking up devices on the local network."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

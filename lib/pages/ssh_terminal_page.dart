@@ -95,9 +95,7 @@ class _SshTerminalPageState extends State<SshTerminalPage> {
 
   @override
   void dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _shell?.close();
     _focusNode.dispose();
     _terminalController.dispose();
@@ -110,7 +108,12 @@ class _SshTerminalPageState extends State<SshTerminalPage> {
     }
   }
 
-  void _onTerminalResize(int width, int height, int pixelWidth, int pixelHeight) {
+  void _onTerminalResize(
+    int width,
+    int height,
+    int pixelWidth,
+    int pixelHeight,
+  ) {
     _shell?.session.resizeTerminal(width, height);
   }
 
@@ -232,14 +235,14 @@ class _SshTerminalPageState extends State<SshTerminalPage> {
                     _isConnected
                         ? Icons.circle
                         : _isConnecting
-                            ? Icons.hourglass_empty
-                            : Icons.error,
+                        ? Icons.hourglass_empty
+                        : Icons.error,
                     size: 12,
                     color: _isConnected
                         ? Colors.green
                         : _isConnecting
-                            ? Colors.orange
-                            : Colors.red,
+                        ? Colors.orange
+                        : Colors.red,
                   ),
                   const SizedBox(width: 8),
                   Text(widget.deviceName),
@@ -288,59 +291,58 @@ class _SshTerminalPageState extends State<SshTerminalPage> {
                       ),
                     )
                   : _error != null
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.error_outline,
-                                  color: Colors.red,
-                                  size: 48,
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  '连接失败',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _error!,
-                                  style:
-                                      const TextStyle(color: Colors.grey),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 24),
-                                ElevatedButton(
-                                  onPressed: _connect,
-                                  child: const Text('重试'),
-                                ),
-                              ],
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 48,
                             ),
-                          ),
-                        )
-                      : GestureDetector(
-                          onScaleStart: _handleScaleStart,
-                          onScaleUpdate: _handleScaleUpdate,
-                          child: TerminalView(
-                            _terminal,
-                            controller: _terminalController,
-                            focusNode: _focusNode,
-                            autoResize: true,
-                            textStyle: TerminalStyle(
-                              fontSize: _fontSize,
-                              fontFamily: 'monospace',
+                            const SizedBox(height: 16),
+                            const Text(
+                              '连接失败',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
                             ),
-                            theme: _greenScreenTheme,
-                            cursorType: TerminalCursorType.block,
-                            alwaysShowCursor: true,
-                            padding: const EdgeInsets.all(4),
-                          ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _error!,
+                              style: const TextStyle(color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: _connect,
+                              child: const Text('重试'),
+                            ),
+                          ],
                         ),
+                      ),
+                    )
+                  : GestureDetector(
+                      onScaleStart: _handleScaleStart,
+                      onScaleUpdate: _handleScaleUpdate,
+                      child: TerminalView(
+                        _terminal,
+                        controller: _terminalController,
+                        focusNode: _focusNode,
+                        autoResize: true,
+                        textStyle: TerminalStyle(
+                          fontSize: _fontSize,
+                          fontFamily: 'monospace',
+                        ),
+                        theme: _greenScreenTheme,
+                        cursorType: TerminalCursorType.block,
+                        alwaysShowCursor: true,
+                        padding: const EdgeInsets.all(4),
+                      ),
+                    ),
             ),
             if (_isConnected && !isLandscape) _buildKeyBar(),
           ],

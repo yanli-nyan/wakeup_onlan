@@ -26,7 +26,10 @@ class HomeAssistantService {
     }
   }
 
-  Future<Map<String, dynamic>?> _post(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>?> _post(
+    String endpoint,
+    Map<String, dynamic> body,
+  ) async {
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
       final request = await HttpClient().postUrl(uri);

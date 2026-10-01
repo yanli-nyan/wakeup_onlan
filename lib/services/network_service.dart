@@ -70,7 +70,10 @@ class NetworkService {
     return onLocal;
   }
 
-  static Future<void> sendMagicPacket(String macAddress, {String? broadcastAddress}) async {
+  static Future<void> sendMagicPacket(
+    String macAddress, {
+    String? broadcastAddress,
+  }) async {
     try {
       final macBytes = _parseMacAddress(macAddress);
       final packet = _buildMagicPacket(macBytes);

@@ -7,11 +7,7 @@ class SshShell {
   final SSHSession session;
   final Stream<Uint8List> output;
 
-  SshShell({
-    required this.client,
-    required this.session,
-    required this.output,
-  });
+  SshShell({required this.client, required this.session, required this.output});
 
   void write(String data) {
     session.write(Uint8List.fromList(utf8.encode(data)));
@@ -38,11 +34,7 @@ class SshService {
     required String command,
     Duration timeout = const Duration(seconds: 10),
   }) async {
-    final socket = await SSHSocket.connect(
-      host,
-      port,
-      timeout: timeout,
-    );
+    final socket = await SSHSocket.connect(host, port, timeout: timeout);
 
     final client = SSHClient(
       socket,
@@ -115,11 +107,7 @@ class SshService {
     required String password,
     Duration timeout = const Duration(seconds: 10),
   }) async {
-    final socket = await SSHSocket.connect(
-      host,
-      port,
-      timeout: timeout,
-    );
+    final socket = await SSHSocket.connect(host, port, timeout: timeout);
 
     final client = SSHClient(
       socket,
@@ -128,20 +116,12 @@ class SshService {
     );
 
     final session = await client.shell(
-      pty: const SSHPtyConfig(
-        type: 'xterm-256color',
-        width: 80,
-        height: 24,
-      ),
+      pty: const SSHPtyConfig(type: 'xterm-256color', width: 80, height: 24),
     );
 
     final output = session.stdout.asBroadcastStream();
 
-    return SshShell(
-      client: client,
-      session: session,
-      output: output,
-    );
+    return SshShell(client: client, session: session, output: output);
   }
 
   static Future<SshShell> openShellViaJump({
@@ -167,10 +147,7 @@ class SshService {
       onPasswordRequest: () => jumpPassword,
     );
 
-    final forwardSocket = await jumpClient.forwardLocal(
-      targetHost,
-      targetPort,
-    );
+    final forwardSocket = await jumpClient.forwardLocal(targetHost, targetPort);
 
     final targetClient = SSHClient(
       forwardSocket,
@@ -179,19 +156,11 @@ class SshService {
     );
 
     final session = await targetClient.shell(
-      pty: const SSHPtyConfig(
-        type: 'xterm-256color',
-        width: 80,
-        height: 24,
-      ),
+      pty: const SSHPtyConfig(type: 'xterm-256color', width: 80, height: 24),
     );
 
     final output = session.stdout.asBroadcastStream();
 
-    return SshShell(
-      client: targetClient,
-      session: session,
-      output: output,
-    );
+    return SshShell(client: targetClient, session: session, output: output);
   }
 }
